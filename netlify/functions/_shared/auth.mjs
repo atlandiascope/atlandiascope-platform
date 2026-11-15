@@ -1,7 +1,7 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
 const env = (key) => globalThis.Netlify?.env?.get?.(key) ?? process.env[key];
-const supabaseUrl = env("SUPABASE_URL")?.replace(/\/$/, "");
+const supabaseUrl = env("SUPABASE_URL")?.replace(/\\/$/, "");
 const issuer = env("PLATFORM_JWT_ISSUER") || (supabaseUrl ? `${supabaseUrl}/auth/v1` : "");
 const audience = env("PLATFORM_JWT_AUDIENCE") || "authenticated";
 const jwksUrl = env("PLATFORM_JWKS_URL") || (supabaseUrl ? `${supabaseUrl}/auth/v1/.well-known/jwks.json` : "");
@@ -13,11 +13,13 @@ function getJwks() {
   return jwks;
 }
 
-export async function requirePrincipal(event) {
+export async function requirePrincipal(request) {
   if (!issuer || !audience || !jwksUrl) {
     return { ok: false, statusCode: 503, error: "Supabase Auth is not configured" };
   }
-  const header = event.headers?.authorization || event.headers?.Authorization || "";
+  const header = request?.headers?.get
+    ? request.headers.get("authorization") || ""
+    : request?.headers?.authorization || request?.headers?.Authorization || "";
   const match = header.match(/^Bearer\\s+(.+)$/i);
   if (!match) return { ok: false, statusCode: 401, error: "Authentication required" };
   try {
@@ -44,13 +46,12 @@ export async function requirePrincipal(event) {
 }
 
 export function json(statusCode, body) {
-  return {
-    statusCode,
+  return new Response(JSON.stringify(body), {
+    status: statusCode,
     headers: {
       "content-type": "application/json; charset=utf-8",
       "cache-control": "no-store",
       "x-content-type-options": "nosniff"
-    },
-    body: JSON.stringify(body)
-  };
+    }
+  });
 }
