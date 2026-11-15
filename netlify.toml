@@ -23,6 +23,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api/platform-exchange"
+  to = "/.netlify/functions/platform-exchange"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/*"
   [headers.values]
