@@ -1,9 +1,10 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
-const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/$/, "");
-const issuer = process.env.PLATFORM_JWT_ISSUER || (supabaseUrl ? `${supabaseUrl}/auth/v1` : "");
-const audience = process.env.PLATFORM_JWT_AUDIENCE || "authenticated";
-const jwksUrl = process.env.PLATFORM_JWKS_URL || (supabaseUrl ? `${supabaseUrl}/auth/v1/.well-known/jwks.json` : "");
+const env = (key) => globalThis.Netlify?.env?.get?.(key) ?? process.env[key];
+const supabaseUrl = env("SUPABASE_URL")?.replace(/\/$/, "");
+const issuer = env("PLATFORM_JWT_ISSUER") || (supabaseUrl ? `${supabaseUrl}/auth/v1` : "");
+const audience = env("PLATFORM_JWT_AUDIENCE") || "authenticated";
+const jwksUrl = env("PLATFORM_JWKS_URL") || (supabaseUrl ? `${supabaseUrl}/auth/v1/.well-known/jwks.json` : "");
 
 let jwks;
 function getJwks() {
