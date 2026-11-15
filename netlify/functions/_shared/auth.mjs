@@ -5,7 +5,6 @@ const supabaseUrl = env("SUPABASE_URL")?.replace(/\/$/, "");
 const issuer = env("PLATFORM_JWT_ISSUER") || (supabaseUrl ? supabaseUrl + "/auth/v1" : "");
 const audience = env("PLATFORM_JWT_AUDIENCE") || "authenticated";
 const jwksUrl = env("PLATFORM_JWKS_URL") || (supabaseUrl ? supabaseUrl + "/auth/v1/.well-known/jwks.json" : "");
-const adminEmails = new Set(["sean@atlandiascope.com"]);
 
 let jwks;
 function getJwks() {
@@ -21,7 +20,7 @@ export async function requirePrincipal(request) {
   const header = request?.headers?.get
     ? request.headers.get("authorization") || ""
     : request?.headers?.authorization || request?.headers?.Authorization || "";
-  const match = header.match(/^Bearer\s+(.+)$/i);
+  const match = header.match(/^Bearer\\s+(.+)$/i);
   if (!match) return { ok: false, statusCode: 401, error: "Authentication required" };
   try {
     const { payload } = await jwtVerify(match[1], getJwks(), {
@@ -32,8 +31,9 @@ export async function requirePrincipal(request) {
     }
     const appMetadata = payload.app_metadata && typeof payload.app_metadata === "object" ? payload.app_metadata : {};
     const roles = Array.isArray(appMetadata.roles) ? appMetadata.roles : [];
-    const email = typeof payload.email === "string" ? payload.email.trim().toLowerCase() : "";
-    const isAdmin = roles.includes("platform_admin") || (email !== "" && adminEmails.has(email));
+    // Administrator privileges are granted only by a trusted app_metadata claim.
+    // Email addresses are never sufficient to grant elevated access.
+    const isAdmin = roles.includes("platform_admin");
     return {
       ok: true,
       principal: {
