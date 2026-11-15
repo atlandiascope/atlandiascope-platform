@@ -24,13 +24,26 @@ function setProduct(prefix, product) {
 
 try {
   const response = await fetch("/api/platform-me", {
-    headers: { authorization: "Bearer " + token }
+    headers: { authorization: "Bearer " + token },
+    cache: "no-store"
   });
   const profile = await response.json();
   if (!response.ok) throw new Error(profile.error || "Unable to verify your account.");
   $("welcome").textContent = profile.administrator
     ? "Administrator account · paid-feature bypass enabled"
     : "Signed in · standard customer billing applies";
+
+  if (profile.wallet) {
+    const currency = profile.wallet.currency || "USD";
+    $("wallet-balance").textContent = new Intl.NumberFormat("en-US", {
+      style: "currency", currency
+    }).format(Number(profile.wallet.balance_cents || 0) / 100);
+    $("free-exchanges").textContent = String(profile.wallet.free_exchanges_remaining ?? 0);
+  } else {
+    $("wallet-balance").textContent = "Unavailable";
+    $("free-exchanges").textContent = "Unavailable";
+  }
+  $("entitlements-count").textContent = String((profile.entitlements || []).filter((item) => item.status === "active").length);
 
   const integrationResponse = await fetch("/api/platform-integrations", {
     headers: { authorization: "Bearer " + token },
