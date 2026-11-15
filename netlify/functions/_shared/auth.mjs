@@ -20,7 +20,7 @@ export async function requirePrincipal(request) {
   const header = request?.headers?.get
     ? request.headers.get("authorization") || ""
     : request?.headers?.authorization || request?.headers?.Authorization || "";
-  const match = header.match(/^Bearer\\s+(.+)$/i);
+  const match = header.match(/^Bearer\s+(.+)$/i);
   if (!match) return { ok: false, statusCode: 401, error: "Authentication required" };
   try {
     const { payload } = await jwtVerify(match[1], getJwks(), {
