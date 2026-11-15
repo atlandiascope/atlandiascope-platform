@@ -4,14 +4,14 @@
 :root{color-scheme:dark;--bg:#101a2b;--panel:#1b2b43;--line:#344760;--text:#f4f7fb;--muted:#aab8ca;--blue:#6ea8ff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,sans-serif}.wrap{width:min(1080px,calc(100% - 36px));margin:auto}
 header{border-bottom:1px solid var(--line);padding:18px 0}.bar{display:flex;justify-content:space-between;align-items:center;gap:16px}a{color:var(--blue)}button{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 14px;cursor:pointer}
-main{padding:54px 0}h1{font-size:2.5rem;margin:0 0 8px}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:30px}.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}.card h2{font-size:1.25rem}.tag{font-size:.8rem;color:var(--muted)}#error{color:#ff9a9a}
+main{padding:54px 0}h1{font-size:2.5rem;margin:0 0 8px}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:30px}.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}.card h2{font-size:1.25rem}.tag{font-size:.8rem;color:var(--muted)}.status{display:inline-block;margin:10px 0;padding:4px 9px;border:1px solid var(--line);border-radius:99px;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}.detail{min-height:76px;color:var(--muted);font-size:.92rem}#error{color:#ff9a9a}.links{display:flex;gap:14px;flex-wrap:wrap;font-size:.9rem}
 @media(max-width:700px){.grid{grid-template-columns:1fr}}
 </style></head><body>
 <header><div class="wrap bar"><strong>ATLANDIASCOPE / CUSTOMER PORTAL</strong><button id="logout">Sign out</button></div></header>
 <main class="wrap"><h1>Your platform</h1><p class="muted" id="welcome">Checking your secure account…</p><p id="error"></p>
 <div class="grid">
-<article class="card"><div class="tag">01 / ASSISTANT RUNTIME</div><h2>Sylvie Runtime</h2><p class="muted">Conversational AI runtime.</p><span class="tag">Integration pending</span></article>
-<article class="card"><div class="tag">02 / AGENT COMMUNICATION</div><h2>AI Dialogue Gateway</h2><p class="muted">Agent-to-agent communication.</p><span class="tag">Integration pending</span></article>
-<article class="card"><div class="tag">03 / SYSTEM DIAGNOSTICS</div><h2>Universal AI Diagnostics &amp; Repair</h2><p class="muted">Diagnostics and approval-gated repair.</p><span class="tag">Integration pending</span></article>
-</div></main>
-<script type="module" src="/dashboard.js"></script></body></html>
+<article class="card"><div class="tag">01 / ASSISTANT RUNTIME</div><h2>Sylvie Runtime</h2><p class="detail" id="sylvie-detail">Checking runtime deployment…</p><span class="status" id="sylvie-status">Checking</span><div class="links"><a href="https://github.com/atlandiascope/ai-dialogue-gateway/tree/main/sylvie-runtime" target="_blank" rel="noopener">Runtime source</a></div></article>
+<article class="card"><div class="tag">02 / AGENT COMMUNICATION</div><h2>AI Dialogue Gateway</h2><p class="detail" id="gateway-detail">Checking live API…</p><span class="status" id="gateway-status">Checking</span><div class="links"><a href="https://ai-dialogue-gateway.netlify.app" target="_blank" rel="noopener">Open gateway</a><a href="https://ai-dialogue-gateway.netlify.app/api/status" target="_blank" rel="noopener">API status</a></div></article>
+<article class="card"><div class="tag">03 / SYSTEM DIAGNOSTICS</div><h2>Universal AI Diagnostics &amp; Repair</h2><p class="detail" id="repair-detail">Checking capability endpoint…</p><span class="status" id="repair-status">Checking</span><div class="links"><a href="https://ai-dialogue-gateway.netlify.app/api/repair/capabilities" target="_blank" rel="noopener">Capabilities</a><a href="https://github.com/atlandiascope/ai-dialogue-gateway/tree/main/repair-engine" target="_blank" rel="noopener">Engine source</a></div></article>
+</div>
+</main><script type="module" src="/dashboard.js"></script></body></html>
