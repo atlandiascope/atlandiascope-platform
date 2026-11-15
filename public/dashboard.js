@@ -1,5 +1,6 @@
+function $(id) { return document.getElementById(id); }
+
 const token = sessionStorage.getItem("atlandiascope_access_token");
-const refreshToken = sessionStorage.getItem("atlandiascope_refresh_token");
 if (!token) window.location.replace("/auth.html");
 
 $("logout").addEventListener("click", async () => {
@@ -16,9 +17,13 @@ $("logout").addEventListener("click", async () => {
   }
 });
 
-function $(id) { return document.getElementById(id); }
+function setProduct(prefix, product) {
+  $(prefix + "-status").textContent = product.status.replaceAll("_", " ");
+  $(prefix + "-detail").textContent = product.detail;
+}
+
 try {
-  const response = await fetch("/.netlify/functions/platform-me", {
+  const response = await fetch("/api/platform-me", {
     headers: { authorization: "Bearer " + token }
   });
   const profile = await response.json();
@@ -26,6 +31,18 @@ try {
   $("welcome").textContent = profile.administrator
     ? "Administrator account · paid-feature bypass enabled"
     : "Signed in · standard customer billing applies";
+
+  const integrationResponse = await fetch("/api/platform-integrations", {
+    headers: { authorization: "Bearer " + token },
+    cache: "no-store"
+  });
+  const integrationData = await integrationResponse.json();
+  if (!integrationResponse.ok) throw new Error(integrationData.error || "Unable to load product connection status.");
+
+  const byId = Object.fromEntries(integrationData.products.map((product) => [product.id, product]));
+  setProduct("sylvie", byId.sylvie);
+  setProduct("gateway", byId.dialogue_gateway);
+  setProduct("repair", byId.diagnostics_repair);
 } catch (error) {
-  $("error").textContent = error.message + " Your session may need to be refreshed or identity configuration may still be pending.";
+  $("error").textContent = error.message + " Your session may need to be refreshed.";
 }
