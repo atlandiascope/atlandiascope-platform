@@ -24,11 +24,15 @@ export default async (request) => {
   const result = await requirePrincipal(request);
   if (!result.ok) return json(result.statusCode, { error: result.error });
   const { principal } = result;
-  const bearer = request.headers.get("authorization").replace(/^Bearer\\s+/i, "");
+  const authorization = request.headers.get("authorization") || "";
+  const bearerMatch = authorization.match(/^Bearer\s+(.+)$/i);
+  if (!bearerMatch) return json(401, { error: "Authentication required" });
+  const accessToken = bearerMatch[1];
+
   try {
     const [walletRows, entitlementRows] = await Promise.all([
-      readOwnRows("platform_wallets", "balance_cents,currency,free_exchanges_remaining", principal.customerId, bearer),
-      readOwnRows("platform_entitlements", "product_id,status,plan_code", principal.customerId, bearer)
+      readOwnRows("platform_wallets", "balance_cents,currency,free_exchanges_remaining", principal.customerId, accessToken),
+      readOwnRows("platform_entitlements", "product_id,status,plan_code", principal.customerId, accessToken)
     ]);
     return json(200, {
       customer_id: principal.customerId,
