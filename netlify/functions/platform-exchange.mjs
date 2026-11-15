@@ -31,7 +31,7 @@ export default async (request) => {
   if (!auth.ok) return json(auth.statusCode, { error: auth.error });
 
   const header = request.headers.get("authorization") || "";
-  const accessToken = header.replace(/^Bearer\\s+/i, "");
+  const accessToken = header.replace(/^Bearer\s+/i, "");
   let body;
   try { body = await request.json(); } catch { return json(400, { error: "A JSON request body is required." }); }
 
