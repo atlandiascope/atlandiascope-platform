@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101a2b">
+<title>Sign in | AtlandiaScope</title>
+<style>
+:root{color-scheme:dark;--bg:#101a2b;--panel:#1b2b43;--line:#344760;--text:#f4f7fb;--muted:#aab8ca;--blue:#6ea8ff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 70% 10%,#294c7855,transparent 45%),var(--bg);color:var(--text);font:16px/1.5 system-ui,sans-serif}
+main{width:min(440px,100%);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:30px;box-shadow:0 24px 70px #0004}
+a{color:var(--blue)}h1{margin:0 0 6px;font-size:1.8rem}.muted{color:var(--muted);margin:0 0 24px}
+label{display:block;margin:16px 0 6px;font-weight:650}input{width:100%;padding:12px;border-radius:8px;border:1px solid var(--line);background:#101a2b;color:var(--text);font:inherit}
+button{width:100%;padding:12px;border:0;border-radius:8px;background:var(--blue);color:#0c1728;font-weight:800;font:inherit;cursor:pointer;margin-top:18px}
+.switch{display:flex;gap:12px;margin:18px 0}.switch button{margin:0;background:transparent;border:1px solid var(--line);color:var(--muted)}.switch button[aria-pressed=true]{background:#294c78;color:white;border-color:var(--blue)}
+#status{min-height:48px;color:var(--muted);font-size:.94rem;margin-top:16px;overflow-wrap:anywhere}.small{font-size:.82rem;color:var(--muted);margin-top:20px}
+</style>
+</head>
+<body>
+<main>
+<a href="/">← AtlandiaScope</a>
+<h1 id="heading">Welcome back</h1>
+<p class="muted">One account for the AtlandiaScope platform.</p>
+<div class="switch"><button type="button" id="signin" aria-pressed="true">Sign in</button><button type="button" id="signup" aria-pressed="false">Create account</button></div>
+<form id="auth-form">
+<label for="email">Email</label><input id="email" type="email" autocomplete="email" required>
+<label for="password">Password</label><input id="password" type="password" autocomplete="current-password" minlength="8" required>
+<button id="submit" type="submit">Sign in</button>
+</form>
+<div id="status" role="status" aria-live="polite"></div>
+<p class="small">Account access is secured by Supabase Auth. Administrator privileges are assigned separately through trusted server-side controls; creating an account never grants admin access.</p>
+</main>
+<script type="module" src="/auth.js"></script>
+</body></html>
