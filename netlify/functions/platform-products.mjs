@@ -6,9 +6,9 @@ const products = [
   { id: "diagnostics_repair", name: "Universal AI Diagnostics & Repair", description: "Diagnostics and approval-gated repair workflows" }
 ];
 
-export default async (event) => {
-  if (event.httpMethod !== "GET") return json(405, { error: "Method not allowed" });
-  const result = await requirePrincipal(event);
+export default async (request) => {
+  if (request.method !== "GET") return json(405, { error: "Method not allowed" });
+  const result = await requirePrincipal(request);
   if (!result.ok) return json(result.statusCode, { error: result.error });
   return json(200, {
     products,
