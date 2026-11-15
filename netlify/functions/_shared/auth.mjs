@@ -5,12 +5,7 @@ const supabaseUrl = env("SUPABASE_URL")?.replace(/\/$/, "");
 const issuer = env("PLATFORM_JWT_ISSUER") || (supabaseUrl ? supabaseUrl + "/auth/v1" : "");
 const audience = env("PLATFORM_JWT_AUDIENCE") || "authenticated";
 const jwksUrl = env("PLATFORM_JWKS_URL") || (supabaseUrl ? supabaseUrl + "/auth/v1/.well-known/jwks.json" : "");
-const adminEmails = new Set(
-  (env("PLATFORM_ADMIN_EMAILS") || "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean)
-);
+const adminEmails = new Set(["sean@atlandiascope.com"]);
 
 let jwks;
 function getJwks() {
