@@ -1,8 +1,8 @@
 import { requirePrincipal, json } from "./_shared/auth.mjs";
 
-export default async (event) => {
-  if (event.httpMethod !== "GET") return json(405, { error: "Method not allowed" });
-  const result = await requirePrincipal(event);
+export default async (request) => {
+  if (request.method !== "GET") return json(405, { error: "Method not allowed" });
+  const result = await requirePrincipal(request);
   if (!result.ok) return json(result.statusCode, { error: result.error });
   const { principal } = result;
   return json(200, {
