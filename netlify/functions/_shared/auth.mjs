@@ -1,49 +1,40 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
-const jwksUrl = process.env.PLATFORM_JWKS_URL;
-const issuer = process.env.PLATFORM_JWT_ISSUER;
-const audience = process.env.PLATFORM_JWT_AUDIENCE;
+const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/$/, "");
+const issuer = process.env.PLATFORM_JWT_ISSUER || (supabaseUrl ? `${supabaseUrl}/auth/v1` : "");
+const audience = process.env.PLATFORM_JWT_AUDIENCE || "authenticated";
+const jwksUrl = process.env.PLATFORM_JWKS_URL || (supabaseUrl ? `${supabaseUrl}/auth/v1/.well-known/jwks.json` : "");
 
 let jwks;
-
 function getJwks() {
-  if (!jwksUrl) throw new Error("PLATFORM_JWKS_URL is not configured");
+  if (!jwksUrl) throw new Error("Supabase JWKS URL is not configured");
   if (!jwks) jwks = createRemoteJWKSet(new URL(jwksUrl));
   return jwks;
 }
 
 export async function requirePrincipal(event) {
-  if (!issuer || !audience) {
-    return { ok: false, statusCode: 503, error: "Identity provider is not configured" };
+  if (!issuer || !audience || !jwksUrl) {
+    return { ok: false, statusCode: 503, error: "Supabase Auth is not configured" };
   }
-
   const header = event.headers?.authorization || event.headers?.Authorization || "";
-  const match = header.match(/^Bearer\s+(.+)$/i);
+  const match = header.match(/^Bearer\\s+(.+)$/i);
   if (!match) return { ok: false, statusCode: 401, error: "Authentication required" };
-
   try {
     const { payload } = await jwtVerify(match[1], getJwks(), {
-      issuer,
-      audience,
-      algorithms: ["RS256", "ES256"]
+      issuer, audience, algorithms: ["RS256", "ES256"]
     });
     if (typeof payload.sub !== "string" || !payload.sub) {
       return { ok: false, statusCode: 401, error: "Invalid identity subject" };
     }
-
-    // Only trusted server-managed application metadata can assign the admin role.
-    const appMetadata = payload.app_metadata && typeof payload.app_metadata === "object"
-      ? payload.app_metadata : {};
+    const appMetadata = payload.app_metadata && typeof payload.app_metadata === "object" ? payload.app_metadata : {};
     const roles = Array.isArray(appMetadata.roles) ? appMetadata.roles : [];
-    const isAdmin = roles.includes("platform_admin");
-
     return {
       ok: true,
       principal: {
         subject: payload.sub,
         issuer: payload.iss,
         customerId: typeof appMetadata.customer_id === "string" ? appMetadata.customer_id : payload.sub,
-        isAdmin
+        isAdmin: roles.includes("platform_admin")
       }
     };
   } catch {
