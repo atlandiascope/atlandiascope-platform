@@ -1,0 +1,11 @@
+{
+  "name": "atlandiascope-platform",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "jose": "^5.9.6"
+  }
+}
