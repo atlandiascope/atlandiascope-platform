@@ -1,12 +1,9 @@
 [build]
-  publish = "."
+  publish = "public"
   functions = "netlify/functions"
 
 [functions]
   node_bundler = "esbuild"
-
-[build.processing]
-  skip_processing = false
 
 [[headers]]
   for = "/*"
