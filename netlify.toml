@@ -5,6 +5,18 @@
 [functions]
   node_bundler = "esbuild"
 
+[[redirects]]
+  from = "/api/platform-me"
+  to = "/.netlify/functions/platform-me"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/platform-products"
+  to = "/.netlify/functions/platform-products"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/*"
   [headers.values]
