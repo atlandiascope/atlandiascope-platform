@@ -4,6 +4,14 @@ const REFRESH = "atlandiascope_refresh_token";
 let mode = "signin";
 let config = null;
 
+// Persist the Supabase session in origin-scoped local storage so a saved browser
+// profile can retain it across tabs and browser restarts. Migrate older tab sessions.
+for (const key of [ACCESS, REFRESH]) {
+  const oldValue = sessionStorage.getItem(key);
+  if (oldValue && !localStorage.getItem(key)) localStorage.setItem(key, oldValue);
+  sessionStorage.removeItem(key);
+}
+
 try {
   const response = await fetch("/supabase-config.json", { cache: "no-store" });
   if (!response.ok) throw new Error("Unable to load platform authentication settings.");
@@ -24,7 +32,7 @@ function setMode(next) {
 $("signin").addEventListener("click", () => setMode("signin"));
 $("signup").addEventListener("click", () => setMode("signup"));
 
-if (sessionStorage.getItem(ACCESS)) location.replace("/dashboard.html");
+if (localStorage.getItem(ACCESS)) location.replace("/dashboard.html");
 
 $("auth-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -52,8 +60,8 @@ $("auth-form").addEventListener("submit", async (event) => {
       return;
     }
     if (!result.access_token) throw new Error("No authenticated session was returned. Please try signing in.");
-    sessionStorage.setItem(ACCESS, result.access_token);
-    if (result.refresh_token) sessionStorage.setItem(REFRESH, result.refresh_token);
+    localStorage.setItem(ACCESS, result.access_token);
+    if (result.refresh_token) localStorage.setItem(REFRESH, result.refresh_token);
     location.replace("/dashboard.html");
   } catch (error) {
     $("status").textContent = error.message;
