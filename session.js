@@ -81,3 +81,47 @@ export async function logout() {
     });
   } catch {}
 }
+
+
+function userData(result) {
+  return {
+    email: result.email || '',
+    display_name: typeof result.user_metadata?.display_name === 'string' ? result.user_metadata.display_name : '',
+    organization: typeof result.user_metadata?.organization === 'string' ? result.user_metadata.organization : ''
+  };
+}
+async function authUser(method, body) {
+  const config = await getConfig();
+  let token = tokenNow();
+  if (!token) token = await refreshToken(null);
+  const send = () => fetch(config.supabaseUrl.replace(/\/$/, '') + '/auth/v1/user', {
+    method,
+    headers: {
+      apikey: config.supabaseAnonKey,
+      authorization: 'Bearer ' + token,
+      ...(body ? { 'content-type': 'application/json' } : {})
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+    cache: 'no-store'
+  });
+  let response = await send();
+  if (response.status === 401) {
+    token = await refreshToken(token);
+    response = await send();
+  }
+  if (response.status === 401) throw new SessionExpired('Your session has expired. Please sign in again.');
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.msg || result.message || result.error_description || 'Unable to access your profile. Please try again.');
+  return userData(result);
+}
+export async function getUserProfile() {
+  return authUser('GET');
+}
+export async function updateUserProfile({ display_name = '', organization = '' } = {}) {
+  if (typeof display_name !== 'string' || typeof organization !== 'string') throw new TypeError('Profile fields must be text.');
+  const name = display_name.trim();
+  const business = organization.trim();
+  if (name.length > 80 || business.length > 120) throw new RangeError('The profile fields are too long.');
+  // Auth user_metadata is only profile information; never an authorization source.
+  return authUser('PUT', { data: { display_name: name, organization: business } });
+}

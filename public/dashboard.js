@@ -1,4 +1,4 @@
-import { api, migrateSession, logout, clearSession, SessionExpired } from "./session.js";
+import { api, migrateSession, logout, clearSession, SessionExpired, getUserProfile, updateUserProfile } from "./session.js";
 const $ = id => document.getElementById(id);
 $("logout").addEventListener("click", async () => {
   $("logout").disabled = true;
@@ -13,6 +13,42 @@ function setProduct(prefix, product) {
   $(prefix + "-detail").textContent = product?.detail || "No status details returned.";
 }
 
+
+async function loadAccountProfile() {
+  try {
+    const saved = await getUserProfile();
+    $("profile-display-name").value = saved.display_name;
+    $("profile-organization").value = saved.organization;
+    $("profile-save").disabled = false;
+    $("profile-status").textContent = "Your account profile is ready.";
+  } catch (error) {
+    $("profile-status").textContent = error.message;
+    if (error instanceof SessionExpired) throw error;
+  }
+}
+$("profile-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = $("profile-save");
+  if (button.disabled) return;
+  button.disabled = true;
+  $("profile-status").textContent = "Saving…";
+  try {
+    await updateUserProfile({
+      display_name: $("profile-display-name").value,
+      organization: $("profile-organization").value
+    });
+    $("profile-status").textContent = "Profile saved to your account.";
+  } catch (error) {
+    $("profile-status").textContent = error.message;
+    if (error instanceof SessionExpired) {
+      clearSession();
+      setTimeout(() => location.replace("/auth.html"), 900);
+    }
+  } finally {
+    button.disabled = false;
+  }
+});
+
 try {
   migrateSession();
   const profile = await api("/api/platform-me");
@@ -25,6 +61,7 @@ try {
     : "Not available";
   $("free-exchanges").textContent = wallet ? String(wallet.free_exchanges_remaining ?? 0) : "—";
   $("entitlements-count").textContent = String((profile.entitlements || []).filter(x => x.status === "active").length);
+  await loadAccountProfile();
   const integrations = await api("/api/platform-integrations");
   const byId = Object.fromEntries((integrations.products || []).map(x => [x.id, x]));
   setProduct("sylvie", byId.sylvie);

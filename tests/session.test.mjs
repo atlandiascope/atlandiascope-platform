@@ -51,3 +51,38 @@ test('a refresh completing after sign-out cannot restore the session',async()=>{
  };
  await assert.rejects(session.api('/one'),session.SessionExpired);assert.equal(session.tokenNow(),null);
 });
+
+
+test('profile loads only the signed-in user metadata', async () => {
+ const session=await setup();
+ globalThis.fetch=async(url,options)=>{
+  if(url==='/supabase-config.json') return config();
+  assert.equal(url,'https://example.test/auth/v1/user');
+  assert.equal(options.headers.authorization,'Bearer old');
+  return json({email:'person@example.test',user_metadata:{display_name:'Sean',organization:'AtlandiaScope',roles:['not-for-auth']}});
+ };
+ assert.deepEqual(await session.getUserProfile(),{email:'person@example.test',display_name:'Sean',organization:'AtlandiaScope'});
+});
+test('profile updates use authenticated Supabase user metadata', async () => {
+ const session=await setup();
+ globalThis.fetch=async(url,options)=>{
+  if(url==='/supabase-config.json') return config();
+  assert.equal(options.method,'PUT');
+  assert.equal(options.headers.authorization,'Bearer old');
+  assert.deepEqual(JSON.parse(options.body),{data:{display_name:'Sean',organization:'AtlandiaScope'}});
+  return json({email:'person@example.test',user_metadata:{display_name:'Sean',organization:'AtlandiaScope'}});
+ };
+ assert.equal((await session.updateUserProfile({display_name:' Sean ',organization:' AtlandiaScope '})).display_name,'Sean');
+ await assert.rejects(session.updateUserProfile({display_name:'x'.repeat(81)}),RangeError);
+});
+test('profile request refreshes an expired token before retrying',async()=>{
+ const session=await setup();let userCalls=0;
+ globalThis.fetch=async(url,options)=>{
+  if(url==='/supabase-config.json')return config();
+  if(url.includes('grant_type'))return json({access_token:'new',refresh_token:'rotated'});
+  userCalls++;
+  return options.headers.authorization==='Bearer new'?json({user_metadata:{display_name:'Recovered'}}):json({},401);
+ };
+ assert.equal((await session.getUserProfile()).display_name,'Recovered');
+ assert.equal(userCalls,2);
+});
