@@ -1,61 +1,77 @@
-function $(id) { return document.getElementById(id); }
+const $ = (id) => document.getElementById(id);
+const ACCESS = "atlandiascope_access_token";
+const REFRESH = "atlandiascope_refresh_token";
+const tokenNow = () => sessionStorage.getItem(ACCESS);
+const config = await (await fetch("/supabase-config.json", { cache: "no-store" })).json();
 
-const token = sessionStorage.getItem("atlandiascope_access_token");
-if (!token) window.location.replace("/auth.html");
+async function refreshAccessToken() {
+  const refresh = sessionStorage.getItem(REFRESH);
+  if (!refresh) throw new Error("Your session has expired. Please sign in again.");
+  const response = await fetch(config.supabaseUrl.replace(/\/$/, "") + "/auth/v1/token?grant_type=refresh_token", {
+    method: "POST",
+    headers: { "content-type": "application/json", apikey: config.supabaseAnonKey },
+    body: JSON.stringify({ refresh_token: refresh })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.access_token) throw new Error("Your session has expired. Please sign in again.");
+  sessionStorage.setItem(ACCESS, data.access_token);
+  if (data.refresh_token) sessionStorage.setItem(REFRESH, data.refresh_token);
+  return data.access_token;
+}
+
+async function api(path) {
+  let token = tokenNow();
+  if (!token) throw new Error("Please sign in to view your dashboard.");
+  let response = await fetch(path, { headers: { authorization: "Bearer " + token, accept: "application/json" }, cache: "no-store" });
+  if (response.status === 401) {
+    token = await refreshAccessToken();
+    response = await fetch(path, { headers: { authorization: "Bearer " + token, accept: "application/json" }, cache: "no-store" });
+  }
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "The platform could not load this information.");
+  return data;
+}
 
 $("logout").addEventListener("click", async () => {
+  const token = tokenNow();
   try {
-    const cfg = await (await fetch("/supabase-config.json")).json();
-    await fetch(cfg.supabaseUrl.replace(/\/$/, "") + "/auth/v1/logout", {
-      method: "POST",
-      headers: { apikey: cfg.supabaseAnonKey, authorization: "Bearer " + token }
+    if (token) await fetch(config.supabaseUrl.replace(/\/$/, "") + "/auth/v1/logout", {
+      method: "POST", headers: { apikey: config.supabaseAnonKey, authorization: "Bearer " + token }
     });
-  } finally {
-    sessionStorage.removeItem("atlandiascope_access_token");
-    sessionStorage.removeItem("atlandiascope_refresh_token");
-    window.location.replace("/auth.html");
-  }
+  } catch {}
+  sessionStorage.removeItem(ACCESS);
+  sessionStorage.removeItem(REFRESH);
+  location.replace("/auth.html");
 });
 
 function setProduct(prefix, product) {
-  $(prefix + "-status").textContent = product.status.replaceAll("_", " ");
-  $(prefix + "-detail").textContent = product.detail;
+  $(prefix + "-status").textContent = (product?.status || "unknown").replaceAll("_", " ");
+  $(prefix + "-detail").textContent = product?.detail || "No status details returned.";
 }
 
 try {
-  const response = await fetch("/api/platform-me", {
-    headers: { authorization: "Bearer " + token },
-    cache: "no-store"
-  });
-  const profile = await response.json();
-  if (!response.ok) throw new Error(profile.error || "Unable to verify your account.");
+  const [profile, integrations] = await Promise.all([
+    api("/api/platform-me"),
+    api("/api/platform-integrations")
+  ]);
   $("welcome").textContent = profile.administrator
-    ? "Administrator account · paid-feature bypass enabled"
-    : "Signed in · standard customer billing applies";
-
-  if (profile.wallet) {
-    const currency = profile.wallet.currency || "USD";
-    $("wallet-balance").textContent = new Intl.NumberFormat("en-US", {
-      style: "currency", currency
-    }).format(Number(profile.wallet.balance_cents || 0) / 100);
-    $("free-exchanges").textContent = String(profile.wallet.free_exchanges_remaining ?? 0);
-  } else {
-    $("wallet-balance").textContent = "Unavailable";
-    $("free-exchanges").textContent = "Unavailable";
-  }
-  $("entitlements-count").textContent = String((profile.entitlements || []).filter((item) => item.status === "active").length);
-
-  const integrationResponse = await fetch("/api/platform-integrations", {
-    headers: { authorization: "Bearer " + token },
-    cache: "no-store"
-  });
-  const integrationData = await integrationResponse.json();
-  if (!integrationResponse.ok) throw new Error(integrationData.error || "Unable to load product connection status.");
-
-  const byId = Object.fromEntries(integrationData.products.map((product) => [product.id, product]));
+    ? "Administrator identity verified by the platform server."
+    : "Signed in · standard customer account";
+  const wallet = profile.wallet;
+  $("wallet-balance").textContent = wallet
+    ? new Intl.NumberFormat("en-US", { style: "currency", currency: wallet.currency || "USD" }).format(Number(wallet.balance_cents || 0) / 100)
+    : "Not available";
+  $("free-exchanges").textContent = wallet ? String(wallet.free_exchanges_remaining ?? 0) : "—";
+  $("entitlements-count").textContent = String((profile.entitlements || []).filter(x => x.status === "active").length);
+  const byId = Object.fromEntries((integrations.products || []).map(x => [x.id, x]));
   setProduct("sylvie", byId.sylvie);
   setProduct("gateway", byId.dialogue_gateway);
   setProduct("repair", byId.diagnostics_repair);
 } catch (error) {
-  $("error").textContent = error.message + " Your session may need to be refreshed.";
+  $("error").textContent = error.message;
+  if (/sign in|session has expired/i.test(error.message)) {
+    sessionStorage.removeItem(ACCESS);
+    sessionStorage.removeItem(REFRESH);
+    setTimeout(() => location.replace("/auth.html"), 900);
+  }
 }
