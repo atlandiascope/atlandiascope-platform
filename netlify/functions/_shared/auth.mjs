@@ -1,19 +1,25 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
-const env = (key) => globalThis.Netlify?.env?.get?.(key) ?? process.env[key];
-const supabaseUrl = env("SUPABASE_URL")?.replace(/\/$/, "");
-const issuer = env("PLATFORM_JWT_ISSUER") || (supabaseUrl ? supabaseUrl + "/auth/v1" : "");
-const audience = env("PLATFORM_JWT_AUDIENCE") || "authenticated";
-const jwksUrl = env("PLATFORM_JWKS_URL") || (supabaseUrl ? supabaseUrl + "/auth/v1/.well-known/jwks.json" : "");
+// Public Supabase project URL; no server-side secret is stored in source.
+const DEFAULT_SUPABASE_URL = "https://lzujcsqldxkqgijowdlw.supabase.co";
+const jwksCache = new Map();
+const readEnv = (key, bindings) => bindings?.[key] ?? globalThis.Netlify?.env?.get?.(key) ?? globalThis.process?.env?.[key];
 
-let jwks;
-function getJwks() {
-  if (!jwksUrl) throw new Error("Supabase JWKS URL is not configured");
-  if (!jwks) jwks = createRemoteJWKSet(new URL(jwksUrl));
-  return jwks;
+function authSettings(bindings) {
+  const supabaseUrl = (readEnv("SUPABASE_URL", bindings) || DEFAULT_SUPABASE_URL).replace(/\/$/, "");
+  return {
+    issuer: readEnv("PLATFORM_JWT_ISSUER", bindings) || supabaseUrl + "/auth/v1",
+    audience: readEnv("PLATFORM_JWT_AUDIENCE", bindings) || "authenticated",
+    jwksUrl: readEnv("PLATFORM_JWKS_URL", bindings) || supabaseUrl + "/auth/v1/.well-known/jwks.json"
+  };
+}
+function getJwks(jwksUrl) {
+  if (!jwksCache.has(jwksUrl)) jwksCache.set(jwksUrl, createRemoteJWKSet(new URL(jwksUrl)));
+  return jwksCache.get(jwksUrl);
 }
 
-export async function requirePrincipal(request) {
+export async function requirePrincipal(request, bindings) {
+  const { issuer, audience, jwksUrl } = authSettings(bindings);
   if (!issuer || !audience || !jwksUrl) {
     return { ok: false, statusCode: 503, error: "Supabase Auth is not configured" };
   }
@@ -23,7 +29,7 @@ export async function requirePrincipal(request) {
   const match = header.match(/^Bearer\s+(.+)$/i);
   if (!match) return { ok: false, statusCode: 401, error: "Authentication required" };
   try {
-    const { payload } = await jwtVerify(match[1], getJwks(), {
+    const { payload } = await jwtVerify(match[1], getJwks(jwksUrl), {
       issuer, audience, algorithms: ["RS256", "ES256"]
     });
     if (typeof payload.sub !== "string" || !payload.sub) {

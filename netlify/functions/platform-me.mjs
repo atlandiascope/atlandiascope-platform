@@ -19,9 +19,9 @@ async function readOwnRows(table, columns, customerId, accessToken) {
   return response.json();
 }
 
-export default async (request) => {
+export default async (request, context = {}) => {
   if (request.method !== "GET") return json(405, { error: "Method not allowed" });
-  const result = await requirePrincipal(request);
+  const result = await requirePrincipal(request, context.env);
   if (!result.ok) return json(result.statusCode, { error: result.error });
   const { principal } = result;
   const authorization = request.headers.get("authorization") || "";

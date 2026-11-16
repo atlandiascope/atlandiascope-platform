@@ -25,9 +25,9 @@ async function callRpc(name, payload, accessToken) {
   return { ok: true, data };
 }
 
-export default async (request) => {
+export default async (request, context = {}) => {
   if (request.method !== "POST") return json(405, { error: "Method not allowed" });
-  const auth = await requirePrincipal(request);
+  const auth = await requirePrincipal(request, context.env);
   if (!auth.ok) return json(auth.statusCode, { error: auth.error });
 
   const header = request.headers.get("authorization") || "";

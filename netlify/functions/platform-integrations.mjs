@@ -9,9 +9,9 @@ async function readJson(url) {
   return { ok: response.ok, http_status: response.status, body };
 }
 
-export default async (request) => {
+export default async (request, context = {}) => {
   if (request.method !== "GET") return json(405, { error: "Method not allowed" });
-  const auth = await requirePrincipal(request);
+  const auth = await requirePrincipal(request, context.env);
   if (!auth.ok) return json(auth.statusCode, { error: auth.error });
 
   const [gateway, diagnostics] = await Promise.all([
