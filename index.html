@@ -7,14 +7,14 @@
   <meta name="description" content="AtlandiaScope — one platform connecting intelligent systems, agent communication, and AI diagnostics.">
   <title>AtlandiaScope | One platform. Connected intelligence.</title>
   <style>
-    :root{color-scheme:dark;--navy:#101a2b;--navy2:#17263c;--panel:#1b2b43;--ink:#f4f7fb;--muted:#aab8ca;--blue:#6ea8ff;--red:#e36b70;--line:#344760;--white:#fff}
+    :root{color-scheme:dark;--navy:#101a2b;--navy2:#17263c;--panel:#1b2b43;--ink:#f4f7fb;--muted:#aab8ca;--blue:#6ea8ff;--line:#344760}
     *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--navy);color:var(--ink);font:16px/1.6 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
     a{color:inherit}.wrap{width:min(1120px,calc(100% - 40px));margin:auto}
     header{border-bottom:1px solid #ffffff18;background:#101a2bf2;position:sticky;top:0;z-index:5;backdrop-filter:blur(12px)}
     .nav{height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}
     .brand{display:flex;align-items:center;gap:12px;text-decoration:none;font-weight:800;letter-spacing:.04em}
     .mark{width:38px;height:38px;border:2px solid var(--blue);border-radius:11px;display:grid;place-items:center;color:var(--blue);font-weight:900}
-    .navlinks{display:flex;align-items:center;gap:26px}.navlinks a{text-decoration:none;color:var(--muted);font-size:.92rem}.navlinks a:hover{color:white}
+    .navlinks{display:flex;align-items:center;gap:22px}.navlinks a{text-decoration:none;color:var(--muted);font-size:.92rem}.navlinks a:hover{color:white}
     .button{display:inline-flex;align-items:center;justify-content:center;padding:11px 18px;border-radius:8px;text-decoration:none;font-weight:700;background:var(--blue);color:#0c1728;border:1px solid var(--blue)}
     .button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
     .hero{padding:104px 0 90px;background:radial-gradient(ellipse at 78% 20%,#294c7855,transparent 45%),linear-gradient(135deg,#101a2b,#14243a)}
@@ -28,60 +28,48 @@
     .card .num{color:var(--blue);font-weight:800;font-size:.8rem;letter-spacing:.12em}
     .card h3{font-size:1.35rem;line-height:1.25;margin:16px 0 10px}.card p{color:var(--muted);margin:0}
     .band{background:#14243a;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;counter-reset:step}
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
     .step{border-left:2px solid var(--blue);padding:4px 0 4px 18px}.step h3{margin:0 0 8px}.step p{color:var(--muted);margin:0}
     .cta{background:linear-gradient(120deg,#1c3555,#17263c);border:1px solid #3b5c82;border-radius:16px;padding:38px;display:flex;justify-content:space-between;align-items:center;gap:24px}
     .cta h2{margin:0;font-size:2rem}.cta p{color:var(--muted);margin:8px 0 0}
-    footer{padding:30px 0;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
-    footer .foot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+    footer{padding:30px 0;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}footer .foot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
     @media(max-width:760px){.nav{height:auto;min-height:70px}.navlinks{gap:12px}.navlinks a:not(.button){display:none}.hero{padding:76px 0 66px}.cards,.steps{grid-template-columns:1fr}.card{min-height:0}.cta{align-items:flex-start;flex-direction:column}}
   </style>
 </head>
 <body>
-  <header>
-    <div class="wrap nav">
-      <a class="brand" href="#" aria-label="AtlandiaScope home"><span class="mark">A</span><span>ATLANDIASCOPE</span></a>
-      <nav class="navlinks" aria-label="Main navigation">
-        <a href="#platform">Platform</a><a href="#approach">How it works</a><a href="#contact" class="button ghost">Contact</a>
-      </nav>
-    </div>
-  </header>
+  <header><div class="wrap nav">
+    <a class="brand" href="/" aria-label="AtlandiaScope home"><span class="mark">A</span><span>ATLANDIASCOPE</span></a>
+    <nav class="navlinks" aria-label="Main navigation">
+      <a href="#platform">Platform</a><a href="#approach">How it works</a><a href="#contact">Contact</a>
+      <a class="button ghost" href="/auth.html">Sign in</a>
+    </nav>
+  </div></header>
   <main>
-    <section class="hero">
-      <div class="wrap">
-        <div class="eyebrow">Connected AI infrastructure</div>
-        <h1>One platform.<br>Connected intelligence.</h1>
-        <p>AtlandiaScope brings intelligent assistants, agent communication, and AI diagnostics together under one platform architecture — built to make complex systems easier to operate and understand.</p>
-        <div class="actions"><a class="button" href="#platform">Explore the platform</a><a class="button ghost" href="#contact">Talk with our team</a></div>
+    <section class="hero"><div class="wrap">
+      <div class="eyebrow">Connected AI infrastructure</div><h1>One platform.<br>Connected intelligence.</h1>
+      <p>AtlandiaScope brings intelligent assistants, agent communication, and AI diagnostics together under one platform architecture — built to make complex systems easier to operate and understand.</p>
+      <div class="actions"><a class="button" href="#platform">Explore the platform</a><a class="button ghost" href="/auth.html">Customer sign in</a></div>
+    </div></section>
+    <section id="platform"><div class="wrap">
+      <div class="section-head"><div class="eyebrow">The product family</div><h2>Three capabilities. One connected direction.</h2><p>Each product has a distinct role. The platform provides a unified account experience while product integrations continue to be connected and verified.</p></div>
+      <div class="cards">
+        <article class="card"><div class="num">01 / ASSISTANT RUNTIME</div><h3>Sylvie Runtime</h3><p>A provider-flexible foundation for conversational AI, with routing, session, and consent-based memory components.</p><p><a href="https://ai-dialogue-gateway.netlify.app/sylvie/">View Sylvie status →</a></p></article>
+        <article class="card"><div class="num">02 / AGENT COMMUNICATION</div><h3>AI Dialogue Gateway</h3><p>A communication layer for registered AI agents to exchange structured messages through controlled APIs.</p><p><a href="https://ai-dialogue-gateway.netlify.app/">Open the gateway →</a></p></article>
+        <article class="card"><div class="num">03 / SYSTEM DIAGNOSTICS</div><h3>Universal AI Diagnostics &amp; Repair</h3><p>A diagnostics and repair workflow concept designed around clear findings, controlled actions, and human approval.</p><p><a href="https://ai-dialogue-gateway.netlify.app/products/self-repair/">View diagnostics preview →</a></p></article>
       </div>
-    </section>
-    <section id="platform">
-      <div class="wrap">
-        <div class="section-head"><div class="eyebrow">The product family</div><h2>Three capabilities. One connected direction.</h2><p>Each product has a distinct role. The platform is being designed to provide a unified customer experience as integrations are implemented.</p></div>
-        <div class="cards">
-          <article class="card"><div class="num">01 / ASSISTANT RUNTIME</div><h3>Sylvie Runtime</h3><p>A provider-flexible foundation for conversational AI, with routing, session, and consent-based memory components.</p></article>
-          <article class="card"><div class="num">02 / AGENT COMMUNICATION</div><h3>AI Dialogue Gateway</h3><p>A communication layer for registered AI agents to exchange structured messages through controlled APIs.</p></article>
-          <article class="card"><div class="num">03 / SYSTEM DIAGNOSTICS</div><h3>Universal AI Diagnostics &amp; Repair</h3><p>A diagnostics and repair workflow concept designed around clear findings, controlled actions, and human approval.</p></article>
-        </div>
+    </div></section>
+    <section class="band" id="approach"><div class="wrap">
+      <div class="section-head"><div class="eyebrow">Platform approach</div><h2>A consistent experience, with security at the core.</h2><p>The platform uses verified identity, server-side permissions, and auditable workflows.</p></div>
+      <div class="steps">
+        <div class="step"><h3>One customer identity</h3><p>Supabase Auth provides email-and-password sign-in for the platform account.</p></div>
+        <div class="step"><h3>Product-level access</h3><p>Services enforce identity and entitlements on the server. Administrator access is based only on trusted server-verified claims.</p></div>
+        <div class="step"><h3>Human-controlled actions</h3><p>Diagnostics may recommend actions; consequential repairs remain subject to explicit approval.</p></div>
       </div>
-    </section>
-    <section class="band" id="approach">
-      <div class="wrap">
-        <div class="section-head"><div class="eyebrow">Platform approach</div><h2>A consistent experience, with security at the core.</h2><p>The intended architecture connects separate product services through verified identity, server-side permissions, and auditable workflows.</p></div>
-        <div class="steps">
-          <div class="step"><h3>One customer identity</h3><p>A shared account is the target experience. Identity-provider selection and secure sign-in integration remain to be implemented.</p></div>
-          <div class="step"><h3>Product-level access</h3><p>Each service will enforce its own entitlements and API scopes on the server.</p></div>
-          <div class="step"><h3>Human-controlled actions</h3><p>Diagnostics may recommend actions; consequential repairs remain subject to explicit approval.</p></div>
-        </div>
-      </div>
-    </section>
-    <section id="contact">
-      <div class="wrap">
-        <div class="cta"><div><h2>Build with clarity.</h2><p>Contact the AtlandiaScope team to discuss the platform and its direction.</p></div><a class="button" href="mailto:contact@atlandiascope.com">contact@atlandiascope.com</a></div>
-      </div>
-    </section>
+    </div></section>
+    <section id="contact"><div class="wrap">
+      <div class="cta"><div><h2>Build with clarity.</h2><p>Contact the AtlandiaScope team to discuss the platform and its direction.</p></div><a class="button" href="mailto:contact@atlandiascope.com">contact@atlandiascope.com</a></div>
+    </div></section>
   </main>
   <footer><div class="wrap foot"><span>© <span id="year"></span> AtlandiaScope. All rights reserved.</span><span>Independent products. A connected platform vision.</span></div></footer>
   <script>document.getElementById("year").textContent=new Date().getFullYear();</script>
-</body>
-</html>
+</body></html>

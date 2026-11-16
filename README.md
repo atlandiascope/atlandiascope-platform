@@ -12,17 +12,19 @@ The three products remain independently deployable and connect through authentic
 
 ## Current status
 
-This repository is the starting point for the parent website. The initial site is a static, responsive landing page. Customer authentication, account provisioning, product entitlements, billing, and live product API connections are not yet implemented.
+The deployed platform provides Supabase email/password sign-in, persistent sessions, a protected customer dashboard, wallet and entitlement reads, and server-verified administrator claims. Gateway health and diagnostics capabilities are checked from the dashboard.
 
-Do not treat a visible product card or link as proof that a product integration is live.
+Sylvie has no hosted chat API yet. Diagnostics is a discovery preview; remote repair execution and Stripe wallet funding are not connected. Product links do not imply those features are live.
 
-## Local preview
+## Local preview and validation
 
-Open `index.html` in a browser, or serve this directory with any static web server.
+Serve `public/` with a static server for the frontend. Netlify runs `netlify/functions/` for the authenticated API routes. Run `npm test` to exercise session recovery. Production configuration is in `netlify.toml`, with `public/` as the publish directory.
+
+The root HTML/JS copies mirror the public files for legacy previews. Update both together. Authentication sessions belong to their exact website origin and do not transfer automatically between the custom domain and Netlify subdomains.
 
 ## Deployment
 
-The included `netlify.toml` publishes the repository root. Connect this private repository to a Netlify site to deploy it. Configure the production domain only after verifying the deployment and environment settings.
+Production is deployed from the connected GitHub main branch. Keep each fix in one commit per site to avoid unnecessary builds. Runtime secrets belong in Netlify environment variables; only the Supabase publishable key is sent to the browser.
 
 ## Security principles
 

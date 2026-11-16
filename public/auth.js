@@ -1,21 +1,11 @@
+import { migrateSession, getConfig, saveSession, tokenNow } from "./session.js";
 const $ = (id) => document.getElementById(id);
-const ACCESS = "atlandiascope_access_token";
-const REFRESH = "atlandiascope_refresh_token";
 let mode = "signin";
 let config = null;
 
-// Persist the Supabase session in origin-scoped local storage so a saved browser
-// profile can retain it across tabs and browser restarts. Migrate older tab sessions.
-for (const key of [ACCESS, REFRESH]) {
-  const oldValue = sessionStorage.getItem(key);
-  if (oldValue && !localStorage.getItem(key)) localStorage.setItem(key, oldValue);
-  sessionStorage.removeItem(key);
-}
-
 try {
-  const response = await fetch("/supabase-config.json", { cache: "no-store" });
-  if (!response.ok) throw new Error("Unable to load platform authentication settings.");
-  config = await response.json();
+  migrateSession();
+  config = await getConfig();
 } catch (error) {
   $("status").textContent = error.message;
 }
@@ -32,7 +22,7 @@ function setMode(next) {
 $("signin").addEventListener("click", () => setMode("signin"));
 $("signup").addEventListener("click", () => setMode("signup"));
 
-if (localStorage.getItem(ACCESS)) location.replace("/dashboard.html");
+if (tokenNow()) location.replace("/dashboard.html");
 
 $("auth-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -55,13 +45,12 @@ $("auth-form").addEventListener("submit", async (event) => {
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.msg || result.message || result.error_description || result.error || "Authentication failed.");
     if (isSignup && !result.access_token) {
-      $("status").textContent = "Account created. Check your email to confirm your address, then return here to sign in.";
       setMode("signin");
+      $("status").textContent = "Account created. Check your email to confirm your address, then return here to sign in.";
       return;
     }
     if (!result.access_token) throw new Error("No authenticated session was returned. Please try signing in.");
-    localStorage.setItem(ACCESS, result.access_token);
-    if (result.refresh_token) localStorage.setItem(REFRESH, result.refresh_token);
+    saveSession(result);
     location.replace("/dashboard.html");
   } catch (error) {
     $("status").textContent = error.message;

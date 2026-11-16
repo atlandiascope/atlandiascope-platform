@@ -1,31 +1,44 @@
-const token = sessionStorage.getItem("atlandiascope_access_token");
-const refreshToken = sessionStorage.getItem("atlandiascope_refresh_token");
-if (!token) window.location.replace("/auth.html");
-
+import { api, migrateSession, logout, clearSession, SessionExpired } from "./session.js";
+const $ = id => document.getElementById(id);
 $("logout").addEventListener("click", async () => {
-  try {
-    const cfg = await (await fetch("/supabase-config.json")).json();
-    await fetch(cfg.supabaseUrl.replace(/\/$/, "") + "/auth/v1/logout", {
-      method: "POST",
-      headers: { apikey: cfg.supabaseAnonKey, authorization: "Bearer " + token }
-    });
-  } finally {
-    sessionStorage.removeItem("atlandiascope_access_token");
-    sessionStorage.removeItem("atlandiascope_refresh_token");
-    window.location.replace("/auth.html");
-  }
+  $("logout").disabled = true;
+  await logout();
+  location.replace("/auth.html");
 });
+window.addEventListener("storage", event => {
+  if (event.key === "atlandiascope_access_token" && !event.newValue) location.replace("/auth.html");
+});
+function setProduct(prefix, product) {
+  $(prefix + "-status").textContent = (product?.status || "unknown").replaceAll("_", " ");
+  $(prefix + "-detail").textContent = product?.detail || "No status details returned.";
+}
 
-function $(id) { return document.getElementById(id); }
 try {
-  const response = await fetch("/.netlify/functions/platform-me", {
-    headers: { authorization: "Bearer " + token }
-  });
-  const profile = await response.json();
-  if (!response.ok) throw new Error(profile.error || "Unable to verify your account.");
+  migrateSession();
+  const profile = await api("/api/platform-me");
   $("welcome").textContent = profile.administrator
-    ? "Administrator account · paid-feature bypass enabled"
-    : "Signed in · standard customer billing applies";
+    ? "Administrator identity verified by the platform server."
+    : "Signed in · standard customer account";
+  const wallet = profile.wallet;
+  $("wallet-balance").textContent = wallet
+    ? new Intl.NumberFormat("en-US", { style: "currency", currency: wallet.currency || "USD" }).format(Number(wallet.balance_cents || 0) / 100)
+    : "Not available";
+  $("free-exchanges").textContent = wallet ? String(wallet.free_exchanges_remaining ?? 0) : "—";
+  $("entitlements-count").textContent = String((profile.entitlements || []).filter(x => x.status === "active").length);
+  const integrations = await api("/api/platform-integrations");
+  const byId = Object.fromEntries((integrations.products || []).map(x => [x.id, x]));
+  setProduct("sylvie", byId.sylvie);
+  setProduct("gateway", byId.dialogue_gateway);
+  setProduct("repair", byId.diagnostics_repair);
 } catch (error) {
-  $("error").textContent = error.message + " Your session may need to be refreshed or identity configuration may still be pending.";
+  $("error").textContent = error.message;
+  $("welcome").textContent = "Unable to finish loading your dashboard.";
+  for (const prefix of ["sylvie", "gateway", "repair"]) {
+    if ($(prefix + "-status").textContent === "Checking") setProduct(prefix, {status: "unavailable", detail: "Could not check this service. Reload to try again."});
+  }
+  if ($("wallet-balance").textContent === "Loading…") $("wallet-balance").textContent = "Unavailable";
+  if (error instanceof SessionExpired) {
+    clearSession();
+    setTimeout(() => location.replace("/auth.html"), 900);
+  }
 }
