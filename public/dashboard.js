@@ -1,11 +1,18 @@
 const $ = (id) => document.getElementById(id);
 const ACCESS = "atlandiascope_access_token";
 const REFRESH = "atlandiascope_refresh_token";
-const tokenNow = () => sessionStorage.getItem(ACCESS);
+
+// Migrate sessions created by the previous tab-scoped implementation.
+for (const key of [ACCESS, REFRESH]) {
+  const oldValue = sessionStorage.getItem(key);
+  if (oldValue && !localStorage.getItem(key)) localStorage.setItem(key, oldValue);
+  sessionStorage.removeItem(key);
+}
+const tokenNow = () => localStorage.getItem(ACCESS);
 const config = await (await fetch("/supabase-config.json", { cache: "no-store" })).json();
 
 async function refreshAccessToken() {
-  const refresh = sessionStorage.getItem(REFRESH);
+  const refresh = localStorage.getItem(REFRESH);
   if (!refresh) throw new Error("Your session has expired. Please sign in again.");
   const response = await fetch(config.supabaseUrl.replace(/\/$/, "") + "/auth/v1/token?grant_type=refresh_token", {
     method: "POST",
@@ -14,8 +21,8 @@ async function refreshAccessToken() {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || !data.access_token) throw new Error("Your session has expired. Please sign in again.");
-  sessionStorage.setItem(ACCESS, data.access_token);
-  if (data.refresh_token) sessionStorage.setItem(REFRESH, data.refresh_token);
+  localStorage.setItem(ACCESS, data.access_token);
+  if (data.refresh_token) localStorage.setItem(REFRESH, data.refresh_token);
   return data.access_token;
 }
 
@@ -39,8 +46,8 @@ $("logout").addEventListener("click", async () => {
       method: "POST", headers: { apikey: config.supabaseAnonKey, authorization: "Bearer " + token }
     });
   } catch {}
-  sessionStorage.removeItem(ACCESS);
-  sessionStorage.removeItem(REFRESH);
+  localStorage.removeItem(ACCESS);
+  localStorage.removeItem(REFRESH);
   location.replace("/auth.html");
 });
 
@@ -70,8 +77,8 @@ try {
 } catch (error) {
   $("error").textContent = error.message;
   if (/sign in|session has expired/i.test(error.message)) {
-    sessionStorage.removeItem(ACCESS);
-    sessionStorage.removeItem(REFRESH);
+    localStorage.removeItem(ACCESS);
+    localStorage.removeItem(REFRESH);
     setTimeout(() => location.replace("/auth.html"), 900);
   }
 }
